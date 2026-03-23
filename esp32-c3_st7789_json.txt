@@ -1,0 +1,35 @@
+// Objetivo: polling HTTP GET a cada 30s, parse JSON, exibe no display
+// Técnica: HTTPClient + ArduinoJson, reconexão WiFi no loop
+
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+const char* ssid     = "SUA_REDE";
+const char* password = "SUA_SENHA";
+const char* url      = "http://192.168.1.100:5000/stats";
+
+void setup() {
+    Serial.begin(115200);
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) delay(500);
+    // inicializar display aqui
+}
+
+void loop() {
+    if (WiFi.status() != WL_CONNECTED) WiFi.reconnect();
+
+    HTTPClient http;
+    http.begin(url);
+    int code = http.GET();
+
+    if (code == 200) {
+        StaticJsonDocument<256> doc;
+        deserializeJson(doc, http.getString());
+        float cpu  = doc["cpu"];
+        float ram  = doc["ram"];
+        // atualizar display aqui
+    }
+    http.end();
+    delay(30000);
+}
